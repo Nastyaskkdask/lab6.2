@@ -1,184 +1,254 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace QuadraticSolver
+namespace ConsoleApp2
 {
-    public class QuadraticEquation
+        // Класс для проверки ввода
+        public class InputValidator
     {
-        private double a;
-        private double b;
-        private double c;
-
-        public double A
+        public static byte GetValidByte(string prompt)
         {
-            get => a;
+            byte number;
+            bool isValid;
+
+            do
+            {
+                Console.Write(prompt);
+                string input = Console.ReadLine();
+
+                isValid = byte.TryParse(input, out number);
+
+                if (!isValid)
+                {
+                    Console.WriteLine("Ошибка: Введите целое число от 0 до 255.");
+                }
+            } while (!isValid);
+
+            return number;
+        }
+    }
+
+    public class Time
+    {
+        private byte hours;
+        private byte minutes;
+
+        // Конструктор по умолчанию
+        public Time()
+        {
+            this.hours = 0;
+            this.minutes = 0;
+        }
+
+        // Конструктор с параметрами
+        public Time(byte hours, byte minutes)
+        {
+            this.hours = hours;
+            this.minutes = minutes;
+            NormalizeTime();
+        }
+
+        // Конструктор копирования
+        public Time(Time other)
+        {
+            this.hours = other.hours;
+            this.minutes = other.minutes;
+        }
+
+        // Свойства для доступа к полям
+        public byte Hours
+        {
+            get { return hours; }
             set
             {
-                if (value == 0)
-                    throw new ArgumentException("Коэффициент 'a' не может быть равен 0.");
-                a = value;
+                hours = value;
+                NormalizeTime();
             }
         }
 
-        public double B
+        public byte Minutes
         {
-            get => b;
-            set => b = value;
-        }
-
-        public double C
-        {
-            get => c;
-            set => c = value;
-        }
-
-        public QuadraticEquation(double a, double b, double c)
-        {
-            A = a;
-            B = b;
-            C = c;
-        }
-
-        public double[] CalculateRoots()
-        {
-            double d = b * b - 4 * a * c;
-            if (d > 0)
+            get { return minutes; }
+            set
             {
-                double root1 = (-b + Math.Sqrt(d)) / (2 * a);
-                double root2 = (-b - Math.Sqrt(d)) / (2 * a);
-                return new double[] { root1, root2 };
+                minutes = value;
+                NormalizeTime();
             }
-            else if (d == 0)
+        }
+
+        // Метод для нормализации времени (приведения к допустимым значениям)
+        private void NormalizeTime()
+        {
+            while (minutes >= 60)
             {
-                double root = -b / (2 * a);
-                return new double[] { root };
+                hours++;
+                minutes -= 60;
+            }
+
+            while (minutes < 0)
+            {
+                hours--;
+                minutes += 60;
+            }
+
+            while (hours >= 24)
+            {
+                hours -= 24;
+            }
+
+            while (hours < 0)
+            {
+                hours += 24;
+            }
+        }
+
+        // Метод для вычитания времени
+        public Time SubtractTime(Time other)
+        {
+            int totalMinutes1 = this.hours * 60 + this.minutes;
+            int totalMinutes2 = other.hours * 60 + other.minutes;
+            int difference = totalMinutes1 - totalMinutes2;
+
+            if (difference < 0)
+            {
+                difference = (24 * 60) + difference; // Переход в предыдущие сутки
+            }
+
+            byte newHours = (byte)(difference / 60);
+            byte newMinutes = (byte)(difference % 60);
+
+            return new Time(newHours, newMinutes);
+        }
+
+        // Перегрузка метода ToString()
+        public override string ToString()
+        {
+            return $"{hours:D2}:{minutes:D2}";
+        }
+
+        // Перегрузка унарного оператора ++ (добавление минуты)
+        public static Time operator ++(Time time)
+        {
+            time.Minutes++;
+            time.NormalizeTime();
+            return time;
+        }
+
+        // Перегрузка унарного оператора -- (вычитание минуты)
+        public static Time operator --(Time time)
+        {
+            if (time.minutes == 0)
+            {
+                time.hours--;
+                if (time.hours < 0)
+                {
+                    time.hours = 23;
+                }
+                time.minutes = 59;
             }
             else
             {
-                return new double[0]; // Нет действительных корней
+                time.minutes--;
             }
+
+            time.NormalizeTime();
+            return time;
         }
 
-        public override string ToString()
+        // Явное приведение типа к int (количество минут)
+        public static explicit operator int(Time time)
         {
-            return $"Уравнение: {a}x^2 + {b}x + {c} = 0";
+            return time.Hours * 60 + time.Minutes;
         }
 
-        // Перегрузка унарного оператора ++
-        public static QuadraticEquation operator ++(QuadraticEquation eq)
+        // Явное приведение типа к bool (true, если не равно нулю)
+        public static explicit operator bool(Time time)
         {
-            return new QuadraticEquation(eq.A + 1, eq.B + 1, eq.C + 1);
+            return time.Hours != 0 || time.Minutes != 0;
         }
 
-        // Перегрузка унарного оператора --
-        public static QuadraticEquation operator --(QuadraticEquation eq)
+        // Перегрузка оператора <
+        public static bool operator <(Time time1, Time time2)
         {
-            return new QuadraticEquation(eq.A - 1, eq.B - 1, eq.C - 1);
+            return (int)time1 < (int)time2;
         }
 
-        // Приведение к double (дискриминант)
-        public static implicit operator double(QuadraticEquation eq)
+        // Перегрузка оператора >
+        public static bool operator >(Time time1, Time time2)
         {
-            return eq.B * eq.B - 4 * eq.A * eq.C;
+            return (int)time1 > (int)time2;
         }
-
-        // Приведение к bool (true, если есть действительные корни)
-        public static explicit operator bool(QuadraticEquation eq)
-        {
-            double d = eq.B * eq.B - 4 * eq.A * eq.C;
-            return d >= 0;
-        }
-
-        // Перегрузка оператора ==
-        public static bool operator ==(QuadraticEquation eq1, QuadraticEquation eq2)
-        {
-            return eq1.A == eq2.A && eq1.B == eq2.B && eq1.C == eq2.C;
-        }
-
-        // Перегрузка оператора !=
-        public static bool operator !=(QuadraticEquation eq1, QuadraticEquation eq2)
-        {
-            return !(eq1 == eq2);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is QuadraticEquation eq && this == eq;
-        }
-
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            try
-            {
-                Console.WriteLine("Решение квадратного уравнения вида ax^2 + bx + c = 0");
+            // Ввод времени 1
+            Console.WriteLine("Введите время 1:");
+            byte hours1 = InputValidator.GetValidByte("Часы: ");
+            byte minutes1 = InputValidator.GetValidByte("Минуты: ");
+            Time time1 = new Time(hours1, minutes1);
 
-                double a = ReadDouble("Введите коэффициент a (не 0): ");
-                while (a == 0)
-                {
-                    Console.WriteLine("Ошибка: коэффициент 'a' не может быть 0.");
-                    a = ReadDouble("Введите коэффициент a (не 0): ");
-                }
+            // Копирование времени 1 во время 2
+            Time time2 = new Time(time1);
+            Console.WriteLine($"\nВремя 2 (копия времени 1): {time2}");
 
-                double b = ReadDouble("Введите коэффициент b: ");
-                double c = ReadDouble("Введите коэффициент c: ");
+            // Ввод времени 3
+            Console.WriteLine("\nВведите время 3, которое нужно вычесть из времени 1:");
+            byte hours3 = InputValidator.GetValidByte("Часы: ");
+            byte minutes3 = InputValidator.GetValidByte("Минуты: ");
+            Time time3 = new Time(hours3, minutes3);
 
-                QuadraticEquation eq = new QuadraticEquation(a, b, c);
-                Console.WriteLine("\n" + eq);
+            // Вычитание времени 3 из времени 1
+            Time time4 = time1.SubtractTime(time3);
+            Console.WriteLine($"\nВремя 1 ({time1}) - Время 3 ({time3}) = {time4}");
 
-                // Вывод корней
-                double[] roots = eq.CalculateRoots();
-                if (roots.Length == 0)
-                    Console.WriteLine("Уравнение не имеет действительных корней.");
-                else
-                {
-                    Console.WriteLine("Корни уравнения:");
-                    foreach (var r in roots)
-                        Console.WriteLine($"x = {r}");
-                }
+            Console.WriteLine("\nТестирование перегруженных операторов:");
+            // ++
+            Time time5 = new Time(time1.Hours, time1.Minutes);
+            Console.WriteLine($"Начальное время: {time5}");
+            time5++;
+            Console.WriteLine($"После time++: {time5}");
 
-                // Проверка неявного приведения к double (дискриминант)
-                double d = eq;
-                Console.WriteLine($"Дискриминант: {d}");
+            // --
+            Time time6 = new Time(time1.Hours, time1.Minutes);
+            Console.WriteLine($"Начальное время: {time6}");
+            time6--;
+            Console.WriteLine($"После time--: {time6}");
 
-                // Проверка явного приведения к bool
-                if ((bool)eq)
-                    Console.WriteLine("Уравнение имеет действительные корни.");
-                else
-                    Console.WriteLine("Уравнение не имеет действительных корней.");
+            // Получаем время для преобразования в минуты
+            Console.WriteLine("\nВведите время для преобразования в минуты:");
+            byte convertHours = InputValidator.GetValidByte("Часы: ");
+            byte convertMinutes = InputValidator.GetValidByte("Минуты: ");
+            Time time7 = new Time(convertHours, convertMinutes);
+            int totalMinutes = (int)time7;
+            Console.WriteLine($"Время {time7} в минутах: {totalMinutes}");
 
-                // Проверка ++ и --
-                QuadraticEquation eqInc = ++eq;
-                QuadraticEquation eqDec = --eq;
+            // Приведение к bool (ввод для проверки не нужен)
+            Time time8 = new Time(0, 0);
+            Time time9 = new Time(10, 20);
+            Console.WriteLine($"Время {time8} приведено к bool: {(bool)time8}");
+            Console.WriteLine($"Время {time9} приведено к bool: {(bool)time9}");
 
-                Console.WriteLine($"\nПосле ++ : {eqInc}");
-                Console.WriteLine($"После -- : {eqDec}");
+            // Получаем время для сравнения
+            Console.WriteLine("\nВведите первое время для сравнения:");
+            byte compare1Hours = InputValidator.GetValidByte("Часы: ");
+            byte compare1Minutes = InputValidator.GetValidByte("Минуты: ");
+            Time time10 = new Time(compare1Hours, compare1Minutes);
 
-                // Сравнение двух уравнений
-                QuadraticEquation eq2 = new QuadraticEquation(a, b, c);
-                Console.WriteLine($"\neq == eq2: {eq == eq2}");
-                Console.WriteLine($"eq != eq2: {eq != eq2}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Ошибка: " + ex.Message);
-            }
+            Console.WriteLine("Введите второе время для сравнения:");
+            byte compare2Hours = InputValidator.GetValidByte("Часы: ");
+            byte compare2Minutes = InputValidator.GetValidByte("Минуты: ");
+            Time time11 = new Time(compare2Hours, compare2Minutes);
 
-            Console.WriteLine("\nНажмите любую клавишу для выхода...");
+            Console.WriteLine($"Время {time10} < {time11}: {time10 < time11}");
+            Console.WriteLine($"Время {time10} > {time11}: {time10 > time11}");
+
             Console.ReadKey();
-        }
-
-        static double ReadDouble(string message)
-        {
-            double value;
-            Console.Write(message);
-            while (!double.TryParse(Console.ReadLine(), out value))
-            {
-                Console.Write("Некорректный ввод. Повторите: ");
-            }
-            return value;
         }
     }
 }
