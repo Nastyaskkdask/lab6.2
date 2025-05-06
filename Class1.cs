@@ -117,15 +117,16 @@ public class Time
         time.NormalizeTime();
         return time;
     }
+    
     public static bool operator <(Time time1, Time time2)
     {
         return (int)time1 < (int)time2;
     }
+    
     public static bool operator >(Time time1, Time time2)
     {
         return (int)time1 > (int)time2;
     }
-
 
     public static explicit operator int(Time time)
     {
