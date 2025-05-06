@@ -100,7 +100,7 @@ public class Time
 
     public static Time operator --(Time time)
     {
-        time.SubstructTime(1);
+        time.SubstructTime(0,1);
         time.NormalizeTime();
         return time;
     }
