@@ -100,20 +100,7 @@ public class Time
 
     public static Time operator --(Time time)
     {
-        if (time.minutes == 0)
-        {
-            time.hours--;
-            if (time.hours < 0)
-            {
-                time.hours = 23;
-            }
-            time.minutes = 59;
-        }
-        else
-        {
-            time.minutes--;
-        }
-
+        time.SubstructTime(1);
         time.NormalizeTime();
         return time;
     }
