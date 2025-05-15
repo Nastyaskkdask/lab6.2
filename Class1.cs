@@ -1,127 +1,142 @@
-﻿using System;
+using System;
 
-public class Time
+namespace WpfApp1
 {
-    private byte hours;
-    private byte minutes;
+    public class Time
+    {
+        private byte hours;
+        private byte minutes;
 
-    public Time()
-    {
-        this.hours = 0;
-        this.minutes = 0;
-    }
-    public Time(byte hours, byte minutes)
-    {
-        this.hours = hours;
-        this.minutes = minutes;
-        NormalizeTime();
-    }
-    public Time(Time other)
-    {
-        this.hours = other.hours;
-        this.minutes = other.minutes;
-    }
-
-    public byte Hours
-    {
-        get { return hours; }
-        set
+        public Time()
         {
-            hours = value;
+            this.hours = 0;
+            this.minutes = 0;
+        }
+
+        public Time(byte hours, byte minutes)
+        {
+            this.hours = hours;
+            this.minutes = minutes;
             NormalizeTime();
         }
-    }
 
-    public byte Minutes
-    {
-        get { return minutes; }
-        set
+        public Time(Time other)
         {
-            minutes = value;
-            NormalizeTime();
-        }
-    }
-
-    private void NormalizeTime()
-    {
-        while (minutes >= 60)
-        {
-            hours++;
-            minutes -= 60;
+            this.hours = other.hours;
+            this.minutes = other.minutes;
         }
 
-        while (minutes < 0)
+        public byte Hours
         {
-            hours--;
-            minutes += 60;
+            get { return hours; }
+            set
+            {
+                hours = value;
+            }
         }
 
-        while (hours >= 24)
+        public byte Minutes
         {
-            hours -= 24;
+            get { return minutes; }
+            set
+            {
+                minutes = value;
+            }
         }
 
-        while (hours < 0)
+        private void Normalize__()
         {
-            hours += 24;
-        }
-    }
 
-    // Метод для вычитания времени
-    public Time SubtractTime(Time other)
-    {
-        int totalMinutes1 = this.hours * 60 + this.minutes;
-        int totalMinutes2 = other.hours * 60 + other.minutes;
-        int difference = totalMinutes1 - totalMinutes2;
+            while (minutes >= 60)
+            {
+                hours--;
+                minutes += 60;
+            }
 
-        if (difference < 0)
-        {
-            difference = (24 * 60) + difference; 
+            while (hours >= 24)
+            {
+                hours += 24;
+            }
         }
 
-        byte newHours = (byte)(difference / 60);
-        byte newMinutes = (byte)(difference % 60);
+        private void NormalizeTime()
+        {
+            while (minutes >= 60)
+            {
+                hours++;
+                minutes -= 60;
+            }
 
-        return new Time(newHours, newMinutes);
-    }
+            while (hours >= 24)
+            {
+                hours -= 24;
+            }
 
-    // Перегрузки
-    public override string ToString()
-    {
-        return $"{hours:D2}:{minutes:D2}";
-    }
+        }
 
-    public static Time operator ++(Time time)
-    {
-        time.Minutes++;
-        time.NormalizeTime();
-        return time;
-    }
+        public Time SubtractTime(Time other)
+        {
+            int totalMinutes1 = this.hours * 60 + this.minutes;
+            int totalMinutes2 = other.hours * 60 + other.minutes;
+            int difference = totalMinutes1 - totalMinutes2;
 
-    public static Time operator --(Time time)
-    {
-        time.SubstructTime(0,1);
-        time.NormalizeTime();
-        return time;
-    }
-    
-    public static bool operator <(Time time1, Time time2)
-    {
-        return (int)time1 < (int)time2;
-    }
-    
-    public static bool operator >(Time time1, Time time2)
-    {
-        return (int)time1 > (int)time2;
-    }
+            if (difference < 0)
+            {
+                difference = (24 * 60) + difference;
+            }
 
-    public static explicit operator int(Time time)
-    {
-        return time.Hours * 60 + time.Minutes;
-    }
+            byte newHours = (byte)(difference / 60);
+            byte newMinutes = (byte)(difference % 60);
 
-    public static explicit operator bool(Time time)
-    {
-        return time.Hours != 0 || time.Minutes != 0;
+            return new Time(newHours, newMinutes);
+        }
+
+        public override string ToString()
+        {
+            return $"{hours:D2}:{minutes:D2}";
+        }
+
+        public static Time operator ++(Time time)
+        {
+            time.Minutes++;
+            time.NormalizeTime();
+            return time;
+        }
+
+        public static Time operator --(Time time)
+        {
+            time.Minutes--;
+            time.Normalize__();
+            return time;
+        }
+
+        public static bool operator <(Time time1, Time time2)
+        {
+            int totalMinutes1 = time1.Hours * 60 + time1.Minutes;
+            int totalMinutes2 = time2.Hours * 60 + time2.Minutes;
+            return totalMinutes1 < totalMinutes2;
+        }
+
+        public static bool operator >(Time time1, Time time2)
+        {
+            int totalMinutes1 = time1.Hours * 60 + time1.Minutes;
+            int totalMinutes2 = time2.Hours * 60 + time2.Minutes;
+            return totalMinutes1 > totalMinutes2;
+        }
+
+        public static explicit operator int(Time time)
+        {
+            return time.Hours * 60 + time.Minutes;
+        }
+
+        public static explicit operator bool(Time time)
+        {
+            return time.Hours != 0 || time.Minutes != 0;
+        }
+
+        public void SubstructTime(int hour, int minute)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
